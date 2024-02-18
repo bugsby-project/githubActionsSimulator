@@ -3,6 +3,8 @@ package com.bugsby.githubactions.simulator.controller;
 import com.bugsby.githubactions.simulator.swagger.model.ActionsListWorkflowRunsForRepo200Response;
 import com.bugsby.githubactions.simulator.swagger.model.FullRepository;
 import com.bugsby.githubactions.simulator.swagger.model.WorkflowRun;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -12,11 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.OffsetDateTime;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 
 @RestController
 @CrossOrigin
 public class ReposController implements com.bugsby.githubactions.simulator.swagger.api.ReposApi {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReposController.class);
+
     @Value("${number.workflow.runs}")
     private int numberWorkflowRuns;
     @Value("${simulator.url}")
@@ -34,12 +39,13 @@ public class ReposController implements com.bugsby.githubactions.simulator.swagg
 
     @Override
     public ResponseEntity<ActionsListWorkflowRunsForRepo200Response> actionsListWorkflowRunsForRepo(String owner, String repo, String actor, String branch, String event, String status, Integer perPage, Integer page, OffsetDateTime created, Boolean excludePullRequests, Integer checkSuiteId, String headSha) {
+        LOGGER.info("Retrieving workflow runs for owner {}, repo {}", owner, repo);
         ActionsListWorkflowRunsForRepo200Response response = new ActionsListWorkflowRunsForRepo200Response()
                 .totalCount(numberWorkflowRuns)
                 .workflowRuns(IntStream.range(0, numberWorkflowRuns)
                         .mapToObj(i -> new WorkflowRun()
-                                .id(Integer.toUnsignedLong(i))
-                                .workflowId(i)
+                                .id(ThreadLocalRandom.current().nextLong())
+                                .workflowId(ThreadLocalRandom.current().nextInt())
                                 .name("name")
                                 .displayTitle("displayTitle")
                                 .status("failure")
